@@ -1,0 +1,33 @@
+{
+  "type": "component",
+  "props": {
+    "disabled": {
+      "type": "Boolean",
+      "desc": ""
+    },
+    "autofocus": {
+      "type": "Boolean",
+      "desc": ""
+    },
+    "placeholder": {
+      "type": "String",
+      "desc": ""
+    },
+    "separator": {
+      "type": "String",
+      "desc": ""
+    },
+    "num": {
+      "type": "Number",
+      "desc": ""
+    },
+    "conditional-class": {
+      "type": "Array",
+      "desc": ""
+    },
+    "input-classes": {
+      "type": "Array",
+      "desc": ""
+    }
+  }
+}

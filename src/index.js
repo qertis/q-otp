@@ -8,5 +8,6 @@ function extendConf (conf, api) {
 
 module.exports = function (api) {
   api.compatibleWith('quasar', '^2.0.0')
+  api.registerDescribeApi('QOtp', '~quasar-app-extension-q-otp/src/component/q-otp.json')
   api.extendQuasarConf(extendConf)
 }

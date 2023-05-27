@@ -1,17 +1,26 @@
 {
   "name": "quasar-app-extension-q-otp",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": false,
   "description": "Quasar App Extension which injects a Vue component - QOtp",
   "author": "Denis Baskovsky <baskovsky@ya.ru>",
   "license": "MIT",
   "keywords": [
-    "quasar",
-    "quasarframework",
+    "q-otp",
     "otp",
-    "q-otp"
+    "qotp",
+    "vue",
+    "quasar",
+    "vue3",
+    "otp-input",
+    "otp-forminput",
+    "one-time-password",
+    "one-time-code",
+    "inputs",
+    "quasarframework"
   ],
   "main": "src/index.js",
+  "module": "src/component/QOtp.vue",
   "repository": {
     "type": "git",
     "url": "https://github.com/qertis/q-otp"

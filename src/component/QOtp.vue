@@ -91,16 +91,16 @@ function focusAndSelectInput(input) {
   input.select()
 }
 function handleOnFocus(id) {
-  activeInput.value = id
+  focusInput(id)
 }
-function focusInput(input: number) {
-  activeInput.value = Math.max(Math.min(props.num - 1, input), 0)
+function focusInput(value) {
+  activeInput.value = value
 }
 function focusNextInput() {
-  focusInput(activeInput.value + 1)
+  focusInput(Math.max(Math.min(props.num, activeInput.value + 1), 0))
 }
 function focusPrevInput() {
-  focusInput(activeInput.value - 1)
+  focusInput(Math.max(Math.min(props.num - 1, activeInput.value - 1), 0))
 }
 function handleOnSelect(event) {
   if (event.currentTarget.value) {
@@ -108,32 +108,34 @@ function handleOnSelect(event) {
   }
 }
 function handleOnPaste(event: ClipboardEvent) {
-  event.preventDefault()
   focusAndSelectInput(input.value.at(0))
-  event.clipboardData
+  const { length } = event.clipboardData
     .getData('text/plain')
     .slice(0, props.num - activeInput.value)
     .split('')
     .map((elem) => Number(elem))
     .filter((elem) => Number.isInteger(elem))
-    .forEach((value, i) => {
+    .map((value, i) => {
       inputValue(value, i)
-      focusNextInput()
+      return value
     })
-  const pin = getPin()
-  emit('change', pin)
+  focusInput(length)
+  checkComplete()
+  return event.preventDefault()
 }
 function inputValue(value, index = activeInput.value) {
   input.value.at(index).value = value
 }
-function handleOnChange() {
+function checkComplete() {
   const pin = getPin()
   emit('change', pin)
-  if (props.num === pin.length) {
+  if ((props.num === pin.length) && (props.num === activeInput.value)) {
     emit('complete', pin)
-  } else {
-    focusNextInput()
   }
+}
+function handleOnChange() {
+  focusNextInput()
+  checkComplete()
 }
 function getPin() {
   let str = ''
@@ -169,11 +171,10 @@ function handleOnKeyDown(event: KeyboardEvent) {
     }
     default: {
       if (event.code.startsWith('Digit')) {
-        if (!Number.isNaN(Number(event.key))) {
-          event.currentTarget.value = event.key
-          return
-        }
+        event.currentTarget.value = event.key
+        focusNextInput()
       }
+      checkComplete()
       return event.preventDefault()
     }
   }
@@ -182,7 +183,7 @@ function handleOnKeyDown(event: KeyboardEvent) {
 watch(
   () => activeInput.value,
   (newVal, oldVal) => {
-    if (oldVal !== newVal) {
+    if (oldVal !== newVal && newVal <= props.num - 1) {
       focusAndSelectInput(input.value.at(newVal))
     }
   },
@@ -196,23 +197,20 @@ onMounted(() => {
 
 defineExpose({
   blur() {
-    input.value.at(activeInput.value).blur()
+    for (let i = 0; i < props.num; i++) {
+      input.value.at(i).blur()
+    }
   },
   focus() {
+    activeInput.value = 0
     focusAndSelectInput(input.value.at(activeInput.value))
   },
   clear() {
-    activeInput.value = 0
     for (let i = 0; i < props.num; i++) {
       inputValue('', i)
     }
   },
-  getPin() {
-    return getPin()
-  },
-  get num() {
-    return props.num
-  },
+  getPin,
 })
 </script>
 <style lang="scss">
@@ -229,6 +227,7 @@ body.body--light {
 }
 body.body--dark {
   .otp-input {
+    color: white;
     background-color: var(--q-dark);
 
     &:invalid,
