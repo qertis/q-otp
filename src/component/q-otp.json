@@ -1,10 +1,6 @@
 {
   "type": "component",
   "props": {
-    "disabled": {
-      "type": "Boolean",
-      "desc": ""
-    },
     "autofocus": {
       "type": "Boolean",
       "desc": ""

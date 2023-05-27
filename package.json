@@ -1,9 +1,13 @@
 {
   "name": "quasar-app-extension-q-otp",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "private": false,
   "description": "Quasar App Extension which injects a Vue component - QOtp",
-  "author": "Denis Baskovsky <baskovsky@ya.ru>",
+  "author": {
+    "name": "Denis Baskovsky",
+    "email": "baskovsky@ya.ru",
+    "url": "https://baskovsky.ru/"
+  },
   "license": "MIT",
   "keywords": [
     "q-otp",

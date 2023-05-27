@@ -2,6 +2,9 @@
   <div>
     <template v-for="(_, i) in num" :key="i">
       <QField
+        :autofocus="autofocus"
+        :disable="disable"
+        :readonly="readonly"
         :label-color="labelColor"
         :color="color"
         :bg-color="bgColor"
@@ -26,7 +29,8 @@
             maxlength="1"
             pattern="[0-9]"
             required
-            :disabled="disabled"
+            :disabled="disable"
+            :readonly="readonly"
             :class="['otp-input', 'q-ma-xs', inputClasses, conditionalClass[i]]"
             :placeholder="placeholder"
             :autofocus="activeInput === i"
@@ -75,10 +79,6 @@ const props = defineProps({
   placeholder: {
     type: String as PropType<string>,
     default: '*',
-  },
-  disabled: {
-    type: Boolean as PropType<boolean>,
-    default: false,
   },
 })
 
@@ -145,34 +145,23 @@ function getPin() {
   return str
 }
 function handleOnKeyDown(event: KeyboardEvent) {
-  if (props.disabled) {
-    return event.preventDefault()
-  }
   switch (event.key) {
-    case 'Backspace': {
-      focusPrevInput()
-      return event.preventDefault()
-    }
-    case 'Tab':
-    case 'Delete': {
-      return event.preventDefault()
-    }
-    case 'Enter': {
-      focusNextInput()
-      return event.preventDefault()
-    }
+    case 'Backspace':
     case 'ArrowLeft': {
       focusPrevInput()
       return event.preventDefault()
     }
+    case 'Enter':
     case 'ArrowRight': {
       focusNextInput()
       return event.preventDefault()
     }
     default: {
       if (event.code.startsWith('Digit')) {
-        event.currentTarget.value = event.key
-        focusNextInput()
+        if (['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'].includes(event.key)) {
+          event.currentTarget.value = event.key
+          focusNextInput()
+        }
       }
       checkComplete()
       return event.preventDefault()
@@ -214,30 +203,9 @@ defineExpose({
 })
 </script>
 <style lang="scss">
-body.body--light {
-  .otp-input {
-    &:invalid,
-    &:valid,
-    &:active,
-    &:focus-visible,
-    &:hover {
-      border-color: transparent;
-    }
-  }
-}
-body.body--dark {
-  .otp-input {
-    color: white;
-    background-color: var(--q-dark);
-
-    &:invalid,
-    &:valid,
-    &:active,
-    &:focus-visible,
-    &:hover {
-      border-color: transparent;
-    }
-  }
+body.body--dark .otp-input {
+  color: white;
+  background-color: var(--q-dark);
 }
 body .otp-input {
   background: transparent;
@@ -246,6 +214,13 @@ body .otp-input {
   text-align: center;
   outline: none;
 
+  &:invalid,
+  &:valid,
+  &:active,
+  &:focus-visible,
+  &:hover {
+    border-color: transparent;
+  }
   &:focus-visible,
   &:focus,
   &:target {

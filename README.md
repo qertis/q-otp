@@ -19,7 +19,8 @@ placeholder: String
 #### State
 ```
 autofocus: Boolean
-disabled: Boolean
+readonly: Boolean
+disable: Boolean
 num: Number
 ```
 
