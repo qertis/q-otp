@@ -4,7 +4,12 @@ The QOtp App Extension allows you to seamlessly add the QOtp component into your
 
 ## Basic usage
 ```vue
-<q-otp class="flex" @complete="(code) => alert(code)"></q-otp>
+<q-otp 
+    placeholder="-"
+    field-classes="q-ml-xs q-mr-xs"
+    input-styles="opacity: 1 !important;"
+    @complete="(code) => alert(code)"
+/>
 ```
 
 ## Documentation
@@ -41,7 +46,9 @@ dense: Boolean
 item-aligned: Boolean
 separator: String
 conditional-class: Array<String>
-input-classes: Array<String>    
+field-classes: Array<String>
+input-classes: Array<String>
+input-styles: <String>
 ```
 
 ### Events

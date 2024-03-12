@@ -1,9 +1,10 @@
 <template>
-  <div>
+  <div class="flex">
     <template v-for="(_, i) in num" :key="i">
       <QField
+        :class="fieldClasses"
         :autofocus="autofocus"
-        :disable="disable"
+        :disable="disabled[i]"
         :readonly="readonly"
         :label-color="labelColor"
         :color="color"
@@ -29,16 +30,16 @@
             maxlength="1"
             pattern="[0-9]"
             required
-            :disabled="disable"
+            :disabled="disabled[i]"
             :readonly="readonly"
-            :class="['otp-input', 'q-ma-xs', inputClasses, conditionalClass[i]]"
+            :style="inputStyles"
+            :class="['otp-input', inputClasses, conditionalClass[i]]"
             :placeholder="placeholder"
             :autofocus="activeInput === i"
             @input="handleOnChange"
             @keydown="handleOnKeyDown"
             @paste="handleOnPaste"
-            @focus="handleOnFocus(i)"
-            @select="handleOnSelect"
+            @focus="focusInput(i)"
           />
         </template>
       </QField>
@@ -65,6 +66,12 @@ const props = defineProps({
     type: String as PropType<string>,
     default: '',
   },
+  inputStyles: {
+    type: String as PropType<string>,
+  },
+  fieldClasses: {
+    type: [String, Array] as PropType<string[] | string>,
+  },
   inputClasses: {
     type: [String, Array] as PropType<string[] | string>,
   },
@@ -84,31 +91,42 @@ const props = defineProps({
 
 const input = ref<HTMLInputElement | null>(null) as Ref<HTMLInputElement>
 const activeInput = ref<number>(0)
+const disabled = ref([...Array(props.num).keys()].map(() => true))
 
 function focusAndSelectInput(input) {
   input.focus()
   input.setSelectionRange(0, 0)
   input.select()
 }
-function handleOnFocus(id) {
-  focusInput(id)
+function blurInput() {
+  input.value[activeInput.value].blur()
 }
 function focusInput(value) {
-  activeInput.value = value
+  for (let i = 0; i < disabled.value.length - 1; i++) {
+    disabled.value.splice(i, 1, i !== value)
+  }
+  setTimeout(() => {
+    activeInput.value = value
+    if (!input.value[activeInput.value].disabled) {
+      input.value[activeInput.value].focus()
+    }
+  })
 }
 function focusNextInput() {
-  focusInput(Math.max(Math.min(props.num, activeInput.value + 1), 0))
+  const elem = Math.max(Math.min(props.num, activeInput.value + 1), 0)
+  if (elem === props.num) {
+    return
+  }
+  blurInput()
+  focusInput(elem)
 }
 function focusPrevInput() {
-  focusInput(Math.max(Math.min(props.num - 1, activeInput.value - 1), 0))
-}
-function handleOnSelect(event) {
-  if (event.currentTarget.value) {
-    event.currentTarget.setSelectionRange(0, 1)
-  }
+  const elem = Math.max(Math.min(props.num - 1, activeInput.value - 1), 0)
+  blurInput()
+  focusInput(elem)
 }
 function handleOnPaste(event: ClipboardEvent) {
-  focusAndSelectInput(input.value.at(0))
+  blurInput()
   const { length } = event.clipboardData
     .getData('text/plain')
     .slice(0, props.num - activeInput.value)
@@ -119,7 +137,7 @@ function handleOnPaste(event: ClipboardEvent) {
       inputValue(value, i)
       return value
     })
-  focusInput(length)
+  focusInput(Math.min(props.num - 1, length))
   checkComplete()
   return event.preventDefault()
 }
@@ -146,24 +164,38 @@ function getPin() {
 }
 function handleOnKeyDown(event: KeyboardEvent) {
   switch (event.key) {
-    case 'Backspace':
-    case 'ArrowLeft': {
+    case 'Backspace': {
+      if (activeInput.value === (props.num - 1) && input.value[(props.num - 1)].value) {
+        return
+      }
+      input.value[activeInput.value].value = ''
+      if (activeInput.value > 0) {
+        input.value[activeInput.value - 1].value = ''
+      }
       focusPrevInput()
       return event.preventDefault()
     }
-    case 'Enter':
-    case 'ArrowRight': {
-      focusNextInput()
+    case 'ArrowRight':
+    case 'ArrowLeft': {
+      return event.preventDefault()
+    }
+    case 'Enter': {
+      if (input.value[activeInput.value].value !== '') {
+        checkComplete()
+        focusNextInput()
+      }
       return event.preventDefault()
     }
     default: {
-      if (event.code.startsWith('Digit')) {
+      if (event.code === 'KeyV') {
+        break
+      } else if (event.code.startsWith('Digit')) {
         if (['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'].includes(event.key)) {
-          event.currentTarget.value = event.key
+          input.value[activeInput.value].value = event.key
           focusNextInput()
         }
+        checkComplete()
       }
-      checkComplete()
       return event.preventDefault()
     }
   }
@@ -182,6 +214,7 @@ onMounted(() => {
   if (props.autofocus) {
     focusAndSelectInput(input.value.at(0))
   }
+  disabled.value.splice(disabled.value, 0, false)
 })
 
 defineExpose({
