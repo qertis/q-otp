@@ -21,8 +21,16 @@
       "type": "Array",
       "desc": ""
     },
+    "field-classes": {
+      "type": "Array",
+      "desc": ""
+    },
     "input-classes": {
       "type": "Array",
+      "desc": ""
+    },
+    "input-styles": {
+      "type": "String",
       "desc": ""
     }
   }
