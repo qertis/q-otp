@@ -1,5 +1,5 @@
 <template>
-  <div class="flex">
+  <div class="flex" @click="focusAndSelectInput(input.at(activeInput))">
     <template v-for="(_, i) in num" :key="i">
       <QField
         :class="fieldClasses"
@@ -99,31 +99,32 @@ function focusAndSelectInput(input) {
   input.select()
 }
 function blurInput() {
-  input.value[activeInput.value].blur()
+  input.value.at(activeInput.value).blur()
 }
-function focusInput(value) {
+function focusInput(value: number) {
   for (let i = 0; i < disabled.value.length - 1; i++) {
     disabled.value.splice(i, 1, i !== value)
   }
   setTimeout(() => {
     activeInput.value = value
-    if (!input.value[activeInput.value].disabled) {
-      input.value[activeInput.value].focus()
+    const elem = input.value.at(activeInput.value)
+    if (!elem.disabled) {
+      elem.focus()
     }
   })
 }
 function focusNextInput() {
-  const elem = Math.max(Math.min(props.num, activeInput.value + 1), 0)
-  if (elem === props.num) {
+  const index = Math.max(Math.min(props.num, activeInput.value + 1), 0)
+  if (index === props.num) {
     return
   }
   blurInput()
-  focusInput(elem)
+  focusInput(index)
 }
 function focusPrevInput() {
-  const elem = Math.max(Math.min(props.num - 1, activeInput.value - 1), 0)
+  const index = Math.max(Math.min(props.num - 1, activeInput.value - 1), 0)
   blurInput()
-  focusInput(elem)
+  focusInput(index)
 }
 function handleOnPaste(event: ClipboardEvent) {
   blurInput()
@@ -134,14 +135,14 @@ function handleOnPaste(event: ClipboardEvent) {
     .map((elem) => Number(elem))
     .filter((elem) => Number.isInteger(elem))
     .map((value, i) => {
-      inputValue(value, i)
+      inputValue(String(value), i)
       return value
     })
   focusInput(Math.min(props.num - 1, length))
   checkComplete()
   return event.preventDefault()
 }
-function inputValue(value, index = activeInput.value) {
+function inputValue(value: string, index: number = activeInput.value) {
   input.value.at(index).value = value
 }
 function checkComplete() {
@@ -165,12 +166,12 @@ function getPin() {
 function handleOnKeyDown(event: KeyboardEvent) {
   switch (event.key) {
     case 'Backspace': {
-      if (activeInput.value === (props.num - 1) && input.value[(props.num - 1)].value) {
+      if (activeInput.value === (props.num - 1) && input.value.at(props.num - 1).value) {
         return
       }
-      input.value[activeInput.value].value = ''
+      inputValue('')
       if (activeInput.value > 0) {
-        input.value[activeInput.value - 1].value = ''
+        inputValue('', activeInput.value - 1)
       }
       focusPrevInput()
       return event.preventDefault()
@@ -180,18 +181,19 @@ function handleOnKeyDown(event: KeyboardEvent) {
       return event.preventDefault()
     }
     case 'Enter': {
-      if (input.value[activeInput.value].value !== '') {
+      if (input.value.at(activeInput.value).value !== '') {
         checkComplete()
         focusNextInput()
       }
       return event.preventDefault()
     }
     default: {
-      if (event.code === 'KeyV') {
+      const { key, code } = event
+      if (code === 'KeyV') {
         break
-      } else if (event.code.startsWith('Digit')) {
-        if (['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'].includes(event.key)) {
-          input.value[activeInput.value].value = event.key
+      } else if (code.startsWith('Digit')) {
+        if (['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'].includes(key)) {
+          inputValue(key)
           focusNextInput()
         }
         checkComplete()
