@@ -88,7 +88,7 @@ const props = defineProps({
   ...QField.props,
   num: {
     type: Number as PropType<number>,
-    default: 4,
+    default: 6,
   },
   separator: {
     type: String as PropType<string>,
@@ -122,13 +122,12 @@ const activeInput = ref<number>(0)
 const disabled = ref([...Array(props.num).keys()].map(() => true))
 const pin = ref<string>('')
 
+const digits = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
+
 function focusAndSelectInput(input) {
   input.focus()
   input.setSelectionRange(0, 0)
   input.select()
-}
-function blurInput() {
-  input.value.at(activeInput.value).blur()
 }
 function focusInput(value: number) {
   for (let i = 0; i < disabled.value.length - 1; i++) {
@@ -139,7 +138,7 @@ function focusInput(value: number) {
   })
 }
 function handleOnPaste(event: ClipboardEvent) {
-  blurInput()
+  input.value.at(activeInput.value).blur()
   pin.value = event.clipboardData
     .getData('text/plain')
     .slice(0, props.num - activeInput.value)
@@ -154,7 +153,7 @@ function handleOnPaste(event: ClipboardEvent) {
   return event.preventDefault()
 }
 function inputValue(value: string, index: number = activeInput.value) {
-  input.value.at(index).value = value
+  input.value.at(index).value = value[0] ?? ''
 }
 function handleOnChange() {
   pin.value = getPin()
@@ -194,7 +193,7 @@ function handleOnKeyDown(event: KeyboardEvent) {
       if (code === 'KeyV') {
         break
       } else if (code.startsWith('Digit')) {
-        if (['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'].includes(key)) {
+        if (digits.includes(key)) {
           inputValue(key)
           pin.value = getPin()
         }
@@ -203,22 +202,19 @@ function handleOnKeyDown(event: KeyboardEvent) {
     }
   }
 }
-
 watch(
   () => pin.value,
   (newVal, oldVal) => {
     if (newVal === oldVal) {
       return
     }
-    if ((props.num === newVal.length)) {
+    emit('change', newVal)
+    if (props.num === newVal.length) {
       emit('complete', newVal)
-    } else if (newVal) {
-      emit('change', newVal)
     }
     focusInput(Math.min(newVal.length, props.num - 1))
   },
 )
-
 watch(
   () => activeInput.value,
   (newVal, oldVal) => {
@@ -230,14 +226,17 @@ watch(
     }
   },
 )
-
 onMounted(() => {
   if (props.autofocus) {
     focusAndSelectInput(input.value.at(0))
   }
   disabled.value.splice(disabled.value, 0, false)
+  if (props.modelValue) {
+    for (let i = 0; i < props.modelValue.length; i++) {
+      inputValue(props.modelValue[i], i)
+    }
+  }
 })
-
 defineExpose({
   blur() {
     for (let i = 0; i < props.num; i++) {
@@ -245,13 +244,13 @@ defineExpose({
     }
   },
   focus() {
-    activeInput.value = 0
-    focusAndSelectInput(input.value.at(activeInput.value))
+    focusAndSelectInput(input.value.at(activeInput.value = 0))
   },
   clear() {
     for (let i = 0; i < props.num; i++) {
       inputValue('', i)
     }
+    pin.value = ''
   },
   getPin,
 })
