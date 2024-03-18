@@ -26,13 +26,20 @@ quasar ext add q-otp
 
 ## Documentation
 
-#### Content
+### Slots
+
+Slot |
+---|
+control |
+footer |
+
+### Content
 
 Attributes | Type
 ---|---
 placeholder | `String`
 
-#### State
+### State
 
 Attributes | Type
 ---|---
@@ -41,7 +48,7 @@ readonly | `Boolean`
 disable | `Boolean`
 num | `Number`
 
-#### Style
+### Style
 
 Attributes | Type
 ---|---

@@ -1,54 +1,82 @@
 <template>
-  <div class="flex" @click="focusAndSelectInput(input.at(activeInput))">
-    <template v-for="(_, i) in num" :key="i">
-      <QField
-        :class="fieldClasses"
-        :autofocus="autofocus"
-        :disable="disabled[i]"
-        :readonly="readonly"
-        :label-color="labelColor"
-        :color="color"
-        :bg-color="bgColor"
-        :dark="dark"
-        :filled="filled"
-        :outlined="outlined"
-        :borderless="borderless"
-        :standout="standout"
-        :hide-bottom-space="hideBottomSpace"
-        :rounded="rounded"
-        :square="square"
-        :dense="dense"
-        :item-aligned="itemAligned"
-      >
-        <template #default>
-          <input
-            ref="input"
-            type="tel"
-            inputmode="tel"
-            min="0"
-            max="9"
-            maxlength="1"
-            pattern="[0-9]"
-            required
-            :disabled="disabled[i]"
-            :readonly="readonly"
-            :style="inputStyles"
-            :class="['otp-input', inputClasses, conditionalClass[i]]"
-            :placeholder="placeholder"
-            :autofocus="activeInput === i"
-            @input="handleOnChange"
-            @keydown="handleOnKeyDown"
-            @paste="handleOnPaste"
-            @focus="focusInput(i)"
-          />
+  <div @click="focusAndSelectInput(input.at(activeInput))">
+    <QField
+      class="main-field"
+      :class="{
+        'complete': pin.length === num,
+      }"
+      bg-color="transparent"
+      :model-value="pin"
+      :rules="props.rules"
+      :error="props.error"
+      :reactive-rules="props.reactiveRules"
+      :lazy-rules="props.lazyRules"
+      :loading="props.loading"
+      :error-message="props.errorMessage"
+      :label="props.label"
+      :stack-label="props.stackLabel"
+      :bottom-slots="props.bottomSlots"
+      :hint="props.hint"
+      :hide-hint="props.hideHint"
+      :prefix="props.prefix"
+      :suffix="props.suffix"
+      :borderless="true"
+      :clearable="false"
+      :counter="false"
+      :no-error-icon="true"
+      :dense="true"
+    >
+      <template v-for="(_, i) in num" :key="i">
+        <QField
+          class="otp-field"
+          :class="fieldClasses"
+          :autofocus="autofocus"
+          :disable="disabled[i]"
+          :readonly="props.readonly"
+          :label-color="props.labelColor"
+          :color="props.color"
+          :bg-color="props.bgColor"
+          :dark="props.dark"
+          :filled="props.filled"
+          :outlined="props.outlined"
+          :borderless="props.borderless"
+          :standout="props.standout"
+          :rounded="props.rounded"
+          :square="props.square"
+          :dense="props.dense"
+          :item-aligned="props.itemAligned"
+        >
+          <template #default>
+            <input
+              ref="input"
+              type="tel"
+              inputmode="tel"
+              min="0"
+              max="9"
+              maxlength="1"
+              pattern="[0-9]"
+              required
+              :disabled="disabled[i]"
+              :readonly="props.readonly"
+              :style="inputStyles"
+              :class="['otp-input', inputClasses, conditionalClass[i]]"
+              :placeholder="placeholder"
+              :autofocus="activeInput === i"
+              @input="handleOnChange"
+              @keydown="handleOnKeyDown"
+              @paste="handleOnPaste"
+              @focus="focusInput(i)"
+            />
+          </template>
+        </QField>
+        <template v-if="separator.length && i !== num - 1">
+          <span class="q-ma-md non-selectable">
+            {{ separator }}
+          </span>
         </template>
-      </QField>
-      <template v-if="separator.length && i !== num - 1">
-        <span class="q-ma-md non-selectable">
-          {{ separator }}
-        </span>
       </template>
-    </template>
+      <slot name="control"></slot>
+    </QField>
   </div>
 </template>
 <script lang="ts" setup>
@@ -92,6 +120,7 @@ const props = defineProps({
 const input = ref<HTMLInputElement | null>(null) as Ref<HTMLInputElement>
 const activeInput = ref<number>(0)
 const disabled = ref([...Array(props.num).keys()].map(() => true))
+const pin = ref<string>('')
 
 function focusAndSelectInput(input) {
   input.focus()
@@ -107,28 +136,11 @@ function focusInput(value: number) {
   }
   setTimeout(() => {
     activeInput.value = value
-    const elem = input.value.at(activeInput.value)
-    if (!elem.disabled) {
-      elem.focus()
-    }
   })
-}
-function focusNextInput() {
-  const index = Math.max(Math.min(props.num, activeInput.value + 1), 0)
-  if (index === props.num) {
-    return
-  }
-  blurInput()
-  focusInput(index)
-}
-function focusPrevInput() {
-  const index = Math.max(Math.min(props.num - 1, activeInput.value - 1), 0)
-  blurInput()
-  focusInput(index)
 }
 function handleOnPaste(event: ClipboardEvent) {
   blurInput()
-  const { length } = event.clipboardData
+  pin.value = event.clipboardData
     .getData('text/plain')
     .slice(0, props.num - activeInput.value)
     .split('')
@@ -138,23 +150,14 @@ function handleOnPaste(event: ClipboardEvent) {
       inputValue(String(value), i)
       return value
     })
-  focusInput(Math.min(props.num - 1, length))
-  checkComplete()
+    .join('')
   return event.preventDefault()
 }
 function inputValue(value: string, index: number = activeInput.value) {
   input.value.at(index).value = value
 }
-function checkComplete() {
-  const pin = getPin()
-  emit('change', pin)
-  if ((props.num === pin.length) && (props.num === activeInput.value)) {
-    emit('complete', pin)
-  }
-}
 function handleOnChange() {
-  focusNextInput()
-  checkComplete()
+  pin.value = getPin()
 }
 function getPin() {
   let str = ''
@@ -173,7 +176,7 @@ function handleOnKeyDown(event: KeyboardEvent) {
       if (activeInput.value > 0) {
         inputValue('', activeInput.value - 1)
       }
-      focusPrevInput()
+      pin.value = getPin()
       return event.preventDefault()
     }
     case 'ArrowRight':
@@ -182,8 +185,7 @@ function handleOnKeyDown(event: KeyboardEvent) {
     }
     case 'Enter': {
       if (input.value.at(activeInput.value).value !== '') {
-        checkComplete()
-        focusNextInput()
+        pin.value = getPin()
       }
       return event.preventDefault()
     }
@@ -194,9 +196,8 @@ function handleOnKeyDown(event: KeyboardEvent) {
       } else if (code.startsWith('Digit')) {
         if (['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'].includes(key)) {
           inputValue(key)
-          focusNextInput()
+          pin.value = getPin()
         }
-        checkComplete()
       }
       return event.preventDefault()
     }
@@ -204,10 +205,28 @@ function handleOnKeyDown(event: KeyboardEvent) {
 }
 
 watch(
+  () => pin.value,
+  (newVal, oldVal) => {
+    if (newVal === oldVal) {
+      return
+    }
+    if ((props.num === newVal.length)) {
+      emit('complete', newVal)
+    } else if (newVal) {
+      emit('change', newVal)
+    }
+    focusInput(Math.min(newVal.length, props.num - 1))
+  },
+)
+
+watch(
   () => activeInput.value,
   (newVal, oldVal) => {
     if (oldVal !== newVal && newVal <= props.num - 1) {
-      focusAndSelectInput(input.value.at(newVal))
+      const elem = input.value.at(newVal)
+      if (!elem.disabled) {
+        focusAndSelectInput(elem)
+      }
     }
   },
 )
@@ -240,9 +259,32 @@ defineExpose({
 <style lang="scss">
 body.body--dark .otp-input {
   color: white;
-  background-color: var(--q-dark);
+  background-color: $dark;
 }
-body .otp-input {
+</style>
+<style lang="scss" scoped>
+@mixin design-control($color) {
+  :deep(.q-field__control) {
+    &:hover::before {
+      border-color: $color;
+    }
+    &.row {
+      outline-color: transparent;
+      color: $color;
+    }
+    &:has(input:not(:placeholder-shown)) {
+      &::before {
+        border-color: $color;
+        color: $color;
+        border-width: 2px;
+      }
+    }
+    &::before {
+      border-width: 2px;
+    }
+  }
+}
+:deep(.otp-input) {
   background: transparent;
   border: none;
   width: 24px;
@@ -271,6 +313,33 @@ body .otp-input {
   }
   &::placeholder {
     text-align: center;
+  }
+}
+:host {
+  label {
+    cursor: text;
+  }
+}
+.main-field {
+  width: fit-content;
+
+  :deep(.otp-field) {
+    input,
+    .q-field__control-container {
+      opacity: 1 !important;
+    }
+    .q-field__inner {
+      cursor: text;
+    }
+  }
+  .q-field {
+    @include design-control($primary);
+  }
+  &.complete {
+    @include design-control($positive);
+  }
+  &.q-field--error {
+    @include design-control($negative);
   }
 }
 </style>
