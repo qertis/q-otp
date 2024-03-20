@@ -7,6 +7,7 @@
       }"
       bg-color="transparent"
       :model-value="pin"
+      :disable="props.loading"
       :rules="props.rules"
       :error="props.error"
       :reactive-rules="props.reactiveRules"
@@ -56,8 +57,7 @@
               maxlength="1"
               pattern="[0-9]"
               required
-              :disabled="disabled[i]"
-              :readonly="props.readonly"
+              title=""
               :style="inputStyles"
               :class="['otp-input', inputClasses, conditionalClass[i]]"
               :placeholder="placeholder"
@@ -113,18 +113,18 @@ const props = defineProps({
   },
   placeholder: {
     type: String as PropType<string>,
-    default: '*',
+    default: ' ',
   },
 })
 
 const input = ref<HTMLInputElement | null>(null) as Ref<HTMLInputElement>
 const activeInput = ref<number>(0)
-const disabled = ref([...Array(props.num).keys()].map(() => true))
+const disabled = ref<boolean[]>([...Array(props.num).keys()].map(() => true))
 const pin = ref<string>('')
 
 const digits = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
 
-function focusAndSelectInput(input) {
+function focusAndSelectInput(input: HTMLInputElement) {
   input.focus()
   input.setSelectionRange(0, 0)
   input.select()
@@ -145,15 +145,12 @@ function handleOnPaste(event: ClipboardEvent) {
     .split('')
     .map((elem) => Number(elem))
     .filter((elem) => Number.isInteger(elem))
-    .map((value, i) => {
-      inputValue(String(value), i)
-      return value
-    })
+    .map((value, i) => inputValue(String(value), i))
     .join('')
   return event.preventDefault()
 }
 function inputValue(value: string, index: number = activeInput.value) {
-  input.value.at(index).value = value[0] ?? ''
+  return input.value.at(index).value = value[0] ?? ''
 }
 function handleOnChange() {
   pin.value = getPin()
@@ -166,7 +163,14 @@ function getPin() {
   return str
 }
 function handleOnKeyDown(event: KeyboardEvent) {
-  switch (event.key) {
+  if (props.loading) {
+    return event.preventDefault()
+  }
+  const { key, code } = event
+  if (code === 'KeyV') {
+    return
+  }
+  switch (key) {
     case 'Backspace': {
       if (activeInput.value === (props.num - 1) && input.value.at(props.num - 1).value) {
         return
@@ -189,14 +193,9 @@ function handleOnKeyDown(event: KeyboardEvent) {
       return event.preventDefault()
     }
     default: {
-      const { key, code } = event
-      if (code === 'KeyV') {
-        break
-      } else if (code.startsWith('Digit')) {
-        if (digits.includes(key)) {
-          inputValue(key)
-          pin.value = getPin()
-        }
+      if (code.startsWith('Digit') && digits.includes(key)) {
+        inputValue(key)
+        pin.value = getPin()
       }
       return event.preventDefault()
     }
@@ -258,7 +257,7 @@ defineExpose({
 <style lang="scss">
 body.body--dark .otp-input {
   color: white;
-  background-color: $dark;
+  background-color: transparent;
 }
 </style>
 <style lang="scss" scoped>
@@ -272,11 +271,16 @@ body.body--dark .otp-input {
       color: $color;
     }
     &:has(input:not(:placeholder-shown)) {
-      &::before {
+      &::before,
+      &::after {
         border-color: $color;
         color: $color;
         border-width: 2px;
       }
+    }
+    &::after {
+      color: transparent;
+      border: none;
     }
     &::before {
       border-width: 2px;
@@ -286,7 +290,7 @@ body.body--dark .otp-input {
 :deep(.otp-input) {
   background: transparent;
   border: none;
-  width: 24px;
+  min-width: 24px;
   text-align: center;
   outline: none;
 
