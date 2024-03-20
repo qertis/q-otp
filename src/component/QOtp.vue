@@ -65,7 +65,6 @@
               @input="handleOnChange"
               @keydown="handleOnKeyDown"
               @paste="handleOnPaste"
-              @focus="focusInput(i)"
             />
           </template>
         </QField>
@@ -95,7 +94,7 @@ const props = defineProps({
     default: '',
   },
   inputStyles: {
-    type: String as PropType<string>,
+    type: [String, Object] as PropType<string | any>,
   },
   fieldClasses: {
     type: [String, Array] as PropType<string[] | string>,
@@ -180,26 +179,17 @@ function handleOnKeyDown(event: KeyboardEvent) {
         inputValue('', activeInput.value - 1)
       }
       pin.value = getPin()
-      return event.preventDefault()
-    }
-    case 'ArrowRight':
-    case 'ArrowLeft': {
-      return event.preventDefault()
-    }
-    case 'Enter': {
-      if (input.value.at(activeInput.value).value !== '') {
-        pin.value = getPin()
-      }
-      return event.preventDefault()
+      break
     }
     default: {
       if (code.startsWith('Digit') && digits.includes(key)) {
         inputValue(key)
         pin.value = getPin()
       }
-      return event.preventDefault()
+      break
     }
   }
+  event.preventDefault()
 }
 watch(
   () => pin.value,
@@ -217,7 +207,7 @@ watch(
 watch(
   () => activeInput.value,
   (newVal, oldVal) => {
-    if (oldVal !== newVal && newVal <= props.num - 1) {
+    if (oldVal > 0 && oldVal !== newVal && newVal <= props.num - 1) {
       const elem = input.value.at(newVal)
       if (!elem.disabled) {
         focusAndSelectInput(elem)
