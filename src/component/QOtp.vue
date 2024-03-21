@@ -58,6 +58,7 @@
               pattern="[0-9]"
               required
               title=""
+              :disabled="disabled[i]"
               :style="inputStyles"
               :class="['otp-input', inputClasses, conditionalClass[i]]"
               :placeholder="placeholder"
@@ -69,7 +70,7 @@
           </template>
         </QField>
         <template v-if="separator.length && i !== num - 1">
-          <span class="q-ma-md non-selectable">
+          <span class="q-mt-auto q-mb-auto non-selectable" :class="'text-'+ (props.color ?? 'secondary')">
             {{ separator }}
           </span>
         </template>
@@ -127,14 +128,6 @@ function focusAndSelectInput(input: HTMLInputElement) {
   input.focus()
   input.setSelectionRange(0, 0)
   input.select()
-}
-function focusInput(value: number) {
-  for (let i = 0; i < disabled.value.length - 1; i++) {
-    disabled.value.splice(i, 1, i !== value)
-  }
-  setTimeout(() => {
-    activeInput.value = value
-  })
 }
 function handleOnPaste(event: ClipboardEvent) {
   input.value.at(activeInput.value).blur()
@@ -201,13 +194,19 @@ watch(
     if (props.num === newVal.length) {
       emit('complete', newVal)
     }
-    focusInput(Math.min(newVal.length, props.num - 1))
+    const value = Math.min(newVal.length, props.num - 1)
+    for (let i = 0; i < disabled.value.length - 1; i++) {
+      disabled.value.splice(i, 1, i !== value)
+    }
+    setTimeout(() => {
+      activeInput.value = value
+    })
   },
 )
 watch(
   () => activeInput.value,
   (newVal, oldVal) => {
-    if (oldVal > 0 && oldVal !== newVal && newVal <= props.num - 1) {
+    if (oldVal !== newVal && newVal <= props.num - 1) {
       const elem = input.value.at(newVal)
       if (!elem.disabled) {
         focusAndSelectInput(elem)
