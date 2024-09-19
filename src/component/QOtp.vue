@@ -84,10 +84,10 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { QField } from 'quasar';
-import { onMounted, PropType, ref, Ref, watch } from 'vue';
+import { QField } from 'quasar'
+import { onMounted, PropType, ref, Ref, watch } from 'vue'
 
-const emit = defineEmits(['complete', 'change']);
+const emit = defineEmits(['complete', 'change'])
 const props = defineProps({
   ...QField.props,
   num: {
@@ -119,22 +119,22 @@ const props = defineProps({
     type: String as PropType<string>,
     default: ' ',
   },
-});
+})
 
-const input = ref<HTMLInputElement | null>(null) as Ref<HTMLInputElement>;
-const activeInput = ref<number>(0);
-const disabled = ref<boolean[]>([...Array(props.num).keys()].map(() => true));
-const pin = ref<string>('');
+const input = ref<HTMLInputElement | null>(null) as Ref<HTMLInputElement>
+const activeInput = ref<number>(0)
+const disabled = ref<boolean[]>([...Array(props.num).keys()].map(() => true))
+const pin = ref<string>('')
 
-const digits = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'];
+const digits = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
 
 function focusAndSelectInput(input: HTMLInputElement) {
-  input.focus();
-  input.setSelectionRange(0, 0);
-  input.select();
+  input.focus()
+  input.setSelectionRange(0, 0)
+  input.select()
 }
 function handleOnPaste(event: ClipboardEvent) {
-  input.value.at(activeInput.value).blur();
+  input.value.at(activeInput.value).blur()
   pin.value = event.clipboardData
     .getData('text/plain')
     .slice(0, props.num - activeInput.value)
@@ -142,111 +142,110 @@ function handleOnPaste(event: ClipboardEvent) {
     .map(elem => Number(elem))
     .filter(elem => Number.isInteger(elem))
     .map((value, i) => inputValue(String(value), i))
-    .join('');
-  return event.preventDefault();
+    .join('')
+  return event.preventDefault()
 }
 function inputValue(value: string, index: number = activeInput.value) {
-  return (input.value.at(index).value = value[0] ?? '');
+  return (input.value.at(index).value = value[0] ?? '')
 }
 function handleOnChange() {
-  console.log('handleOnChange');
-  pin.value = getPin();
+  pin.value = getPin()
 }
 function getPin() {
-  let str = '';
+  let str = ''
   for (const { value } of input.value) {
-    str += value;
+    str += value
   }
-  return str;
+  return str
 }
 function handleOnKeyDown(event: KeyboardEvent) {
   if (props.loading) {
-    return event.preventDefault();
+    return event.preventDefault()
   }
-  const { key, code } = event;
+  const { key, code } = event
   if (code === 'KeyV') {
-    return;
+    return
   }
   switch (key) {
     case 'Backspace': {
       if (activeInput.value === props.num - 1 && input.value.at(props.num - 1).value) {
-        return;
+        return
       }
-      inputValue('');
+      inputValue('')
       if (activeInput.value > 0) {
-        inputValue('', activeInput.value - 1);
+        inputValue('', activeInput.value - 1)
       }
-      pin.value = getPin();
-      break;
+      pin.value = getPin()
+      break
     }
     default: {
       if ((code.startsWith('Digit') || code.startsWith('Numpad')) && digits.includes(key)) {
-        inputValue(key);
-        pin.value = getPin();
+        inputValue(key)
+        pin.value = getPin()
       }
-      break;
+      break
     }
   }
-  event.preventDefault();
+  event.preventDefault()
 }
 watch(
   () => pin.value,
   (newVal, oldVal) => {
     if (newVal === oldVal) {
-      return;
+      return
     }
-    emit('change', newVal);
+    emit('change', newVal)
     if (props.num === newVal.length) {
-      emit('complete', newVal);
+      emit('complete', newVal)
     }
-    const value = Math.min(newVal.length, props.num - 1);
+    const value = Math.min(newVal.length, props.num - 1)
     for (let i = 0; i < disabled.value.length - 1; i++) {
-      disabled.value.splice(i, 1, i !== value);
+      disabled.value.splice(i, 1, i !== value)
     }
     setTimeout(() => {
-      activeInput.value = value;
-    });
+      activeInput.value = value
+    })
   },
-);
+)
 watch(
   () => activeInput.value,
   (newVal, oldVal) => {
     if (oldVal !== newVal && newVal <= props.num - 1) {
-      const elem = input.value.at(newVal);
+      const elem = input.value.at(newVal)
       if (!elem.disabled) {
-        focusAndSelectInput(elem);
+        focusAndSelectInput(elem)
       }
     }
   },
-);
+)
 onMounted(() => {
   if (props.autofocus) {
-    focusAndSelectInput(input.value.at(0));
+    focusAndSelectInput(input.value.at(0))
   }
-  disabled.value.splice(disabled.value, 0, false);
+  disabled.value.splice(disabled.value, 0, false)
   if (props.modelValue) {
     for (let i = 0; i < props.modelValue.length; i++) {
-      inputValue(props.modelValue[i], i);
+      inputValue(props.modelValue[i], i)
     }
   }
-});
+})
 defineExpose({
   blur() {
     for (let i = 0; i < props.num; i++) {
-      input.value.at(i).blur();
+      input.value.at(i).blur()
     }
   },
   focus() {
-    focusAndSelectInput(input.value.at((activeInput.value = 0)));
+    focusAndSelectInput(input.value.at((activeInput.value = 0)))
   },
   clear() {
     for (let i = 0; i < props.num; i++) {
-      inputValue('', i);
+      inputValue('', i)
     }
-    pin.value = '';
+    pin.value = ''
   },
   getPin,
-});
+})
 </script>
 <style lang="scss">
 body.body--dark .otp-input {
