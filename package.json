@@ -1,6 +1,6 @@
 {
   "name": "quasar-app-extension-q-otp",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "private": false,
   "description": "Quasar App Extension which injects a Vue component - QOtp",
   "author": {
