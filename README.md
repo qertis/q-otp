@@ -2,6 +2,8 @@
 
 The q-otp quasar extension allows you to seamlessly add the QOtp component into your Quasar application. 
 
+![q-otp](https://github.com/user-attachments/assets/ce220a86-0080-49a6-acd6-632bd5a0332a)
+
 ## Install
 
 ```bash
