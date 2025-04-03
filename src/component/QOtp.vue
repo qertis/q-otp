@@ -1,5 +1,5 @@
 <template>
-  <div @click="focusAndSelectInput(input.at(activeInput))">
+  <div @click="focusAndSelectInput(getInputValueAt(activeInput))">
     <QField
       class="main-field"
       :class="{
@@ -134,7 +134,7 @@ function focusAndSelectInput(input: HTMLInputElement) {
   input.select()
 }
 function handleOnPaste(event: ClipboardEvent) {
-  input.value.at(activeInput.value).blur()
+  getInputValueAt(activeInput.value)?.blur()
   pin.value = event.clipboardData
     .getData('text/plain')
     .slice(0, props.num - activeInput.value)
@@ -146,7 +146,10 @@ function handleOnPaste(event: ClipboardEvent) {
   return event.preventDefault()
 }
 function inputValue(value: string, index: number = activeInput.value) {
-  return (input.value.at(index).value = value[0] ?? '')
+  return getInputValueAt(index).value = value[0] ?? ''
+}
+function getInputValueAt(key: number) {
+  return input.value.at(key)
 }
 function handleOnChange() {
   pin.value = getPin()
@@ -168,7 +171,7 @@ function handleOnKeyDown(event: KeyboardEvent) {
   }
   switch (key) {
     case 'Backspace': {
-      if (activeInput.value === props.num - 1 && input.value.at(props.num - 1).value) {
+      if (activeInput.value === props.num - 1 && getInputValueAt(props.num - 1).value) {
         return
       }
       inputValue('')
@@ -211,7 +214,7 @@ watch(
   () => activeInput.value,
   (newVal, oldVal) => {
     if (oldVal !== newVal && newVal <= props.num - 1) {
-      const elem = input.value.at(newVal)
+      const elem = getInputValueAt(newVal)
       if (!elem.disabled) {
         focusAndSelectInput(elem)
       }
@@ -220,7 +223,7 @@ watch(
 )
 onMounted(() => {
   if (props.autofocus) {
-    focusAndSelectInput(input.value.at(0))
+    focusAndSelectInput(getInputValueAt(0))
   }
   disabled.value.splice(disabled.value, 0, false)
   if (props.modelValue) {
@@ -232,11 +235,11 @@ onMounted(() => {
 defineExpose({
   blur() {
     for (let i = 0; i < props.num; i++) {
-      input.value.at(i).blur()
+      getInputValueAt(i).blur()
     }
   },
   focus() {
-    focusAndSelectInput(input.value.at((activeInput.value = 0)))
+    focusAndSelectInput(getInputValueAt(activeInput.value = 0))
   },
   clear() {
     for (let i = 0; i < props.num; i++) {
