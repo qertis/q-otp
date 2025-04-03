@@ -50,7 +50,7 @@
           <template #default>
             <input
               ref="input"
-              type="tel"
+              type="number"
               inputmode="tel"
               min="0"
               max="9"
@@ -126,7 +126,7 @@ const activeInput = ref<number>(0)
 const disabled = ref<boolean[]>([...Array(props.num).keys()].map(() => true))
 const pin = ref<string>('')
 
-const digits = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
+const digits = Array.from({ length: 10 }, (_, i) => i.toString())
 
 function focusAndSelectInput(input: HTMLInputElement) {
   input.focus()
