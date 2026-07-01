@@ -85,7 +85,7 @@
 </template>
 <script lang="ts" setup>
 import { QField } from 'quasar'
-import { onMounted, PropType, ref, Ref, watch } from 'vue'
+import { onMounted, type PropType, ref, watch } from 'vue'
 
 const emit = defineEmits(['complete', 'change'])
 const props = defineProps({
@@ -109,7 +109,7 @@ const props = defineProps({
   },
   conditionalClass: {
     type: Array as PropType<string[]>,
-    default: [],
+    default: () => [],
   },
   autofocus: {
     type: Boolean as PropType<boolean>,
@@ -121,14 +121,17 @@ const props = defineProps({
   },
 })
 
-const input = ref<HTMLInputElement | null>(null) as Ref<HTMLInputElement>
+const input = ref<HTMLInputElement[]>([])
 const activeInput = ref<number>(0)
 const disabled = ref<boolean[]>([...Array(props.num).keys()].map(() => true))
 const pin = ref<string>('')
 
 const digits = Array.from({ length: 10 }, (_, i) => i.toString())
 
-function focusAndSelectInput(input: HTMLInputElement) {
+function focusAndSelectInput(input?: HTMLInputElement) {
+  if (!input) {
+    return
+  }
   input.focus()
   input.setSelectionRange(0, 0)
   input.select()
@@ -146,7 +149,11 @@ function handleOnPaste(event: ClipboardEvent) {
   return event.preventDefault()
 }
 function inputValue(value: string, index: number = activeInput.value) {
-  return getInputValueAt(index).value = value[0] ?? ''
+  const elem = getInputValueAt(index)
+  if (!elem) {
+    return ''
+  }
+  return elem.value = value[0] ?? ''
 }
 function getInputValueAt(key: number) {
   return input.value.at(key)
@@ -171,7 +178,7 @@ function handleOnKeyDown(event: KeyboardEvent) {
   }
   switch (key) {
     case 'Backspace': {
-      if (activeInput.value === props.num - 1 && getInputValueAt(props.num - 1).value) {
+      if (activeInput.value === props.num - 1 && getInputValueAt(props.num - 1)?.value) {
         return
       }
       inputValue('')
@@ -215,7 +222,7 @@ watch(
   (newVal, oldVal) => {
     if (oldVal !== newVal && newVal <= props.num - 1) {
       const elem = getInputValueAt(newVal)
-      if (!elem.disabled) {
+      if (!elem?.disabled) {
         focusAndSelectInput(elem)
       }
     }
@@ -225,7 +232,7 @@ onMounted(() => {
   if (props.autofocus) {
     focusAndSelectInput(getInputValueAt(0))
   }
-  disabled.value.splice(disabled.value, 0, false)
+  disabled.value.splice(0, 1, false)
   if (props.modelValue) {
     for (let i = 0; i < props.modelValue.length; i++) {
       inputValue(props.modelValue[i], i)
@@ -235,7 +242,7 @@ onMounted(() => {
 defineExpose({
   blur() {
     for (let i = 0; i < props.num; i++) {
-      getInputValueAt(i).blur()
+      getInputValueAt(i)?.blur()
     }
   },
   focus() {
