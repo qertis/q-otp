@@ -30,6 +30,10 @@
     "url": "https://github.com/qertis/q-otp"
   },
   "bugs": "https://github.com/qertis/q-otp/issues",
+  "peerDependencies": {
+    "quasar": ">=2.20.0",
+    "vue": ">=3.5.38"
+  },
   "engines": {
     "node": ">= 20.x",
     "npm": ">= 6.x"

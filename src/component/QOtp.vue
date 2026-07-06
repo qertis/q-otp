@@ -3,7 +3,7 @@
     <QField
       class="main-field"
       :class="{
-        'complete': pin.length === num,
+        'complete': pin.length === props.num,
       }"
       bg-color="transparent"
       :model-value="pin"
@@ -27,11 +27,11 @@
       :no-error-icon="true"
       :dense="true"
     >
-      <template v-for="(_, i) in num" :key="i">
+      <template v-for="(_, i) in props.num" :key="i">
         <QField
           class="otp-field"
-          :class="fieldClasses"
-          :autofocus="autofocus"
+          :class="props.fieldClasses"
+          :autofocus="props.autofocus"
           :disable="disabled[i]"
           :readonly="props.readonly"
           :label-color="props.labelColor"
@@ -59,9 +59,9 @@
               required
               title=""
               :disabled="disabled[i]"
-              :style="inputStyles"
-              :class="['otp-input', inputClasses, conditionalClass[i]]"
-              :placeholder="placeholder"
+              :style="props.inputStyles"
+              :class="['otp-input', props.inputClasses, props.conditionalClass[i]]"
+              :placeholder="props.placeholder"
               :autofocus="activeInput === i"
               @input="handleOnChange"
               @keydown="handleOnKeyDown"
@@ -69,12 +69,12 @@
             />
           </template>
         </QField>
-        <template v-if="separator.length && i !== num - 1">
+        <template v-if="props.separator.length && i !== props.num - 1">
           <span
             class="q-mt-auto q-mb-auto non-selectable"
             :class="'text-' + (props.color ?? 'secondary')"
           >
-            {{ separator }}
+            {{ props.separator }}
           </span>
         </template>
       </template>
@@ -109,7 +109,7 @@ const props = defineProps({
   },
   conditionalClass: {
     type: Array as PropType<string[]>,
-    default: () => [],
+    default: (): string[] => [],
   },
   autofocus: {
     type: Boolean as PropType<boolean>,
