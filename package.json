@@ -1,8 +1,11 @@
 {
   "name": "quasar-app-extension-q-otp",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "private": false,
   "description": "Quasar App Extension which injects a Vue component - QOtp",
+  "scripts": {
+    "test": "npx vue-tsc --noEmit"
+  },
   "author": {
     "name": "Denis Baskovsky",
     "email": "baskovsky@ya.ru",
@@ -33,6 +36,10 @@
   "peerDependencies": {
     "quasar": ">=2.20.0",
     "vue": ">=3.5.38"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3",
+    "vue-tsc": "^3.3.4"
   },
   "engines": {
     "node": ">= 20.x",

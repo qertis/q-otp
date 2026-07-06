@@ -27,12 +27,12 @@
       :no-error-icon="true"
       :dense="true"
     >
-      <template v-for="(_, i) in props.num" :key="i">
+      <template v-for="i in props.num" :key="i">
         <QField
           class="otp-field"
           :class="props.fieldClasses"
           :autofocus="props.autofocus"
-          :disable="disabled[i]"
+          :disable="disabled[i - 1]"
           :readonly="props.readonly"
           :label-color="props.labelColor"
           :color="props.color"
@@ -58,18 +58,18 @@
               pattern="[0-9]"
               required
               title=""
-              :disabled="disabled[i]"
+              :disabled="disabled[i - 1]"
               :style="props.inputStyles"
-              :class="['otp-input', props.inputClasses, props.conditionalClass[i]]"
+              :class="['otp-input', props.inputClasses, props.conditionalClass[i - 1]]"
               :placeholder="props.placeholder"
-              :autofocus="activeInput === i"
+              :autofocus="activeInput === i - 1"
               @input="handleOnChange"
               @keydown="handleOnKeyDown"
               @paste="handleOnPaste"
             />
           </template>
         </QField>
-        <template v-if="props.separator.length && i !== props.num - 1">
+        <template v-if="props.separator.length && i !== props.num">
           <span
             class="q-mt-auto q-mb-auto non-selectable"
             :class="'text-' + (props.color ?? 'secondary')"
@@ -138,8 +138,7 @@ function focusAndSelectInput(input?: HTMLInputElement) {
 }
 function handleOnPaste(event: ClipboardEvent) {
   getInputValueAt(activeInput.value)?.blur()
-  pin.value = event.clipboardData
-    .getData('text/plain')
+  pin.value = (event.clipboardData?.getData('text/plain') ?? '')
     .slice(0, props.num - activeInput.value)
     .split('')
     .map(elem => Number(elem))
@@ -200,7 +199,7 @@ function handleOnKeyDown(event: KeyboardEvent) {
 }
 watch(
   () => pin.value,
-  (newVal, oldVal) => {
+  (newVal: string, oldVal: string) => {
     if (newVal === oldVal) {
       return
     }
@@ -219,7 +218,7 @@ watch(
 )
 watch(
   () => activeInput.value,
-  (newVal, oldVal) => {
+  (newVal: number, oldVal: number) => {
     if (oldVal !== newVal && newVal <= props.num - 1) {
       const elem = getInputValueAt(newVal)
       if (!elem?.disabled) {
