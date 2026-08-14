@@ -50,10 +50,10 @@
           <template #default>
             <input
               ref="input"
-              type="number"
-              inputmode="tel"
-              min="0"
-              max="9"
+              :type="$q.platform.is.mobile ? 'number' : 'text'"
+              :inputmode="$q.platform.is.mobile ? 'tel' : 'numeric'"
+              :min="$q.platform.is.mobile ? 0 : undefined"
+              :max="$q.platform.is.mobile ? 9 : undefined"
               maxlength="1"
               pattern="[0-9]"
               required
@@ -84,10 +84,11 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { QField } from 'quasar'
+import { QField, useQuasar } from 'quasar'
 import { onMounted, type PropType, ref, watch } from 'vue'
 
 const emit = defineEmits(['complete', 'change'])
+const $q = useQuasar()
 const props = defineProps({
   ...QField.props,
   num: {
@@ -133,6 +134,9 @@ function focusAndSelectInput(input?: HTMLInputElement) {
     return
   }
   input.focus()
+  if (input.type === 'number') {
+    return
+  }
   input.setSelectionRange(0, 0)
   input.select()
 }
@@ -208,7 +212,7 @@ watch(
       emit('complete', newVal)
     }
     const value = Math.min(newVal.length, props.num - 1)
-    for (let i = 0; i < disabled.value.length - 1; i++) {
+    for (let i = 0; i < disabled.value.length; i++) {
       disabled.value.splice(i, 1, i !== value)
     }
     setTimeout(() => {
@@ -293,6 +297,7 @@ body.body--dark .otp-input {
   background: transparent;
   border: none;
   min-width: 24px;
+  width: 100%;
   text-align: center;
   outline: none;
 
@@ -329,13 +334,26 @@ body.body--dark .otp-input {
   width: fit-content;
 
   :deep(.otp-field) {
-    input,
-    .q-field__control-container {
-      opacity: 1 !important;
-    }
+    flex: 0 0 48px;
+    min-width: 48px;
+    max-width: 48px;
+    width: 48px;
+
     .q-field__inner {
       cursor: text;
     }
+  }
+  :deep(.otp-field .q-field__inner),
+  :deep(.otp-field .q-field__control),
+  :deep(.otp-field .q-field__control-container),
+  :deep(.otp-field .otp-input) {
+    flex: 0 1 48px;
+    min-width: 0;
+    max-width: 48px;
+    width: 48px;
+  }
+  :deep(.otp-field .q-field__control-container) {
+    opacity: 1;
   }
   .q-field {
     @include design-control($primary);

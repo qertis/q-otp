@@ -1,10 +1,13 @@
 {
   "name": "quasar-app-extension-q-otp",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "private": false,
   "description": "Quasar App Extension which injects a Vue component - QOtp",
   "scripts": {
-    "test": "npx vue-tsc --noEmit"
+    "test": "npx vue-tsc --noEmit",
+    "test:demo": "vite --config tests/vite.config.ts",
+    "test:ui": "vitest run --config tests/vitest.config.ts",
+    "test:ui:update": "vitest run --config tests/vitest.config.ts --update"
   },
   "author": {
     "name": "Denis Baskovsky",
@@ -38,7 +41,13 @@
     "vue": ">=3.5.38"
   },
   "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.3",
+    "@vitest/browser-playwright": "^4.1.10",
+    "playwright": "^1.62.1",
+    "sass-embedded": "^1.98.0",
     "typescript": "^6.0.3",
+    "vite": "^7.3.1",
+    "vitest": "^4.1.10",
     "vue-tsc": "^3.3.4"
   },
   "engines": {

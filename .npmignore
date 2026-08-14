@@ -1,4 +1,5 @@
 test/
+tests/
 node_modules/
 .idea/
 tsconfig.json
